@@ -20,10 +20,13 @@ docker compose exec -T app pytest -q
 - 5. 时效计算：`/timeliness`，`/api/timeliness`。
 - 6. 赔付对账：`/compensation`，`/api/compensation`。
 - 7. 批次归档：`/archives`，`/api/archives`。
+- 8. 核验分派：`/verifications`，`/api/verifications`。
 
 ## 核心规则
 
 以事件发生时刻重建路径，补传不改变既有妥投时间；承诺时钟按目的地节假日停表。
+
+补传后的妥投核验按票裁决唯一有效任务：时效结论不变由原负责人续办并保留截止时间；结论改变改派具备争议处置权限的人重新核验；同一补传重试不新增或重复分派；替换失败整批回滚，旧版任务、原始扫描与交接原因保留。
 
 ## 演示
 
@@ -31,6 +34,7 @@ docker compose exec -T app pytest -q
 2. 切换模块查看源行及裁决依据。
 3. 重跑相同样例，批次号与行数保持一致。
 4. 复核后导出一份证据CSV。版本已变化的复核提交返回409。
+5. 在核验分派页查看每票当前负责人、截止时间与新旧结论差异，并复核任务。
 
 ## 输入与输出
 

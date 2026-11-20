@@ -1,10 +1,17 @@
 from flask import render_template
 from app.config import MODULES,TITLE,SHORT
 from app.pipeline import execute,load_sample
-from app import store
+from app import store,verification
 def register_pages(app):
     def page(index):
         run=store.latest() or execute(load_sample("dirty.csv"))
+        if index==7:
+            if not verification.tasks(include_inactive=True) and run:
+                verification.sync(run)
+            tasks=verification.tasks(include_inactive=True)
+            columns=['parcel', 'revision', 'owner', 'role', 'deadline', 'status', 'conclusion_before', 'conclusion_after', 'handoff_reason']
+            labels={'parcel': '包裹号', 'revision': '版本', 'owner': '当前负责人', 'role': '角色', 'deadline': '截止时间', 'status': '状态', 'conclusion_before': '原结论', 'conclusion_after': '新结论', 'handoff_reason': '交接原因', 'active': '有效', 'evidence_sha': '证据摘要', 'late_hours_before': '原超时 / h', 'late_hours_after': '新超时 / h', 'expected_before': '原赔付', 'expected_after': '新赔付', 'changed': '结论变化', 'pending': '待核验', 'handoffs': '改派次数', 'continues': '续办次数', 'rejects': '改派拒绝'}
+            return render_template("m8.html",title=TITLE,short=SHORT,modules=MODULES,index=index,run=run,stage={"rows":tasks,"metrics":verification.summary(),"cumulative_quarantine":[]},rows=tasks,columns=columns,history=store.history(),labels=labels,tasks=tasks,events=verification.recent_events(30))
         stage=run["stages"][index]
         rows=stage["rows"]
         columns=[['scan_id', 'parcel', 'node', 'event_time', 'received_time'], ['scan_id', 'parcel', 'node', 'destination', 'zone'], ['scan_id', 'parcel', 'event_utc', 'received_utc', 'upload_lag_hours'], ['parcel', 'accepted_at', 'delivered_at', 'delivery_uploaded_at', 'scan_count', 'path'], ['parcel', 'accepted_at', 'delivered_at', 'working_hours', 'promised_hours', 'late_hours', 'expected', 'sla'], ['parcel', 'expected', 'reported', 'difference', 'status'], ['parcel', 'delivered_at', 'sla', 'expected', 'status']][index]

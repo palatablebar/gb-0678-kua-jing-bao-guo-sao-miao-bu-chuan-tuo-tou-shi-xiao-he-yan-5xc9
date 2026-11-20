@@ -27,7 +27,10 @@ def calculate(raw,params=None,stop=6):
         stages.append(result)
     return {"run_id":digest(raw,params)[:20],"stages":stages,"manifest":manifest(raw,params,started),"parameters":params}
 def execute(raw,params=None):
-    result=calculate(raw,params);return store.save(result["run_id"],result)
+    result=calculate(raw,params);saved=store.save(result["run_id"],result)
+    from app import verification
+    saved["verification"]=verification.sync(saved)
+    return saved
 def stage_preview(index,payload):
     if "rows" in payload and index>0:
         if not isinstance(payload["rows"],list) or any(not isinstance(row,dict) for row in payload["rows"]): raise DomainError("BAD_ROWS","记录需要对象列表")

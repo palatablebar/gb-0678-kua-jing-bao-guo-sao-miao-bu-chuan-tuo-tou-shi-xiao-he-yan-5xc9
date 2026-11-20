@@ -7,3 +7,9 @@ scan_id是扫描事件唯一键，parcel是包裹号。节点按收件、起运�
 业务ID和超大整数按文本保形；Decimal参与数量金额计算，对外序列化为字符串。哨兵集合定义在app/values.py，缺失值不能当零。所有时间带UTC偏移，先转UTC比较，业务日按指定地区划分。区间统一[start,end)。重复业务键保留第一条、完全相同行计重复；值冲突行隔离且保留原值。空文件、全空白、仅表头分开拒绝。
 
 运行清单包括输入sha256、规则版本、参数、生成时刻与耗时。源行编号以CSV解析器的物理结束行号表示，引号内换行不增加记录数。输入超过4MB返回413，非法表头和类型返回422，失效版本复核返回409。
+
+## 核验任务
+
+`verification_tasks`每票每版本一行：task_id、parcel、revision、active、status、owner、role、deadline、evidence_sha、scan_ids、source_lines、evidence、conclusion_before/after、late_hours_before/after、expected_before/after、handoff_reason、run_id、created_at、superseded_at/by/reason、version。同一parcel最多一条active（部分唯一索引）。`verification_events`只追加，记录create/continue/handoff/reject/review与交接原因。
+
+evidence_sha只取路径裁决采纳的扫描及影响时效的字段，同一补传重试摘要稳定；deadline为UTC ISO时间，续办时未过期保持原值，改派与过期顺延按策略窗口重算。
